@@ -6,15 +6,18 @@ from .models import Base
 
 
 
-engine = create_engine('sqlite:///Db.db')
-session = sessionmaker(bind=engine)
+engine = create_engine('sqlite:///Db.db', connect_args={"check_same_thread": False})
+session = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 def create_db_and_tables():
     Base.metadata.create_all(engine)
 
 def get_session():
-    with session() as session:
-        yield session
+    db = session()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 

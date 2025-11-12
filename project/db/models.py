@@ -20,7 +20,6 @@ class UserCoreModel(BaseModel):
     __tablename__ = 'user_core'
     upstream_id = Column(Integer, ForeignKey("user_core.id")) # بالادستی
     phone_number = Column(String(11)) # شماره تلفن
-    national_code = Column(String(10)) # کد ملی
     first_name = Column(String(32)) # نام
     last_name = Column(String(32)) # نام خانوادگی
     # -------------------------------------------------------------
