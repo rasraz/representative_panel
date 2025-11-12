@@ -91,6 +91,12 @@ class UserAuthModel(BaseModel):
         index=True
     )
     password = Column(String(128)) # رمز عبور
+    password_changed_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    ) # زمان آخرین تغییر رمزعبور
     two_step_verification = Column(Boolean, default=False) # چک کردن امنیت 2 مرحله
     is_active = Column(Boolean, default=True) # حساب کاربر فعال است
     is_admin = Column(Boolean, default=False) # حساب کاربر ادمین است
