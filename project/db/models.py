@@ -144,9 +144,9 @@ class UserTelegramModel(BaseModel):
         index=True
     )
     tel_chat_id = Column(String(128)) # شناسه چت تلگرام
-    tel_bot_token = Column(String(128)) # توکن بات تلگرام   
-    tel_channel_id = Column(String(128)) # شناسه کانال تلگرام
-    tel_support_id = Column(String(128)) # شناسه پشتیبان تلگرام
+    tel_bot_token = Column(String(128), nullable=True) # توکن بات تلگرام   
+    tel_channel_id = Column(String(128), nullable=True) # شناسه کانال تلگرام
+    tel_support_id = Column(String(128), nullable=True) # شناسه پشتیبان تلگرام
 
 
 class InvoiceStatus_choices(enum.Enum):
