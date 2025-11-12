@@ -98,6 +98,8 @@ class UserAuthModel(BaseModel):
         nullable=False
     ) # زمان آخرین تغییر رمزعبور
     two_step_verification = Column(Boolean, default=False) # چک کردن امنیت 2 مرحله
+    otp_code = Column(String(5), nullable=True) # کد otp 
+    otp_exp = Column(DateTime(timezone=True)) # تاریخ انقضای کد otp
     is_active = Column(Boolean, default=True) # حساب کاربر فعال است
     is_admin = Column(Boolean, default=False) # حساب کاربر ادمین است
     is_repres = Column(Boolean, default=False) # حساب کاربر نماینده است
