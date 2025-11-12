@@ -93,7 +93,8 @@ class UserAuthModel(BaseModel):
     )
     password = Column(String(128)) # رمز عبور
     two_step_verification = Column(Boolean, default=False) # چک کردن امنیت 2 مرحله
-    is_active = Column(Boolean, default=False) # حساب کاربر فعال است
+    is_active = Column(Boolean, default=True) # حساب کاربر فعال است
+    is_admin = Column(Boolean, default=False) # حساب کاربر ادمین است
     is_repres = Column(Boolean, default=False) # حساب کاربر نماینده است
 
 
@@ -113,9 +114,11 @@ class UserFinanceModel(BaseModel):
         index=True
     )
     wallet_balance =Column(Integer) # موجودی کیف پول
+    card_number = Column(String(16)) # شماره کارت
     total_volume = Column(String(16)) # حجم کل (بر حسب گیگابایت)
     sales_volume_ceiling = Column(Integer) # سقف حجم قابل فروش
-    base_price = Column(String(16)) # قیمت پایه
+    base_selling_price = Column(String(16)) # قیمت پایه فروش
+    base_purchase_price = Column(String(16)) # قیمت پایه خرید
 
 
 class UserTelegramModel(BaseModel):
@@ -136,6 +139,7 @@ class UserTelegramModel(BaseModel):
     tel_chat_id = Column(String(128)) # شناسه چت تلگرام
     tel_bot_token = Column(String(128)) # توکن بات تلگرام   
     tel_channel_id = Column(String(128)) # شناسه کانال تلگرام
+    tel_support_id = Column(String(128)) # شناسه پشتیبان تلگرام
 
 
 class InvoiceStatus_choices(enum.Enum):
