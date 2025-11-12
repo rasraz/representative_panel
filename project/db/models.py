@@ -19,7 +19,7 @@ class UserCoreModel(BaseModel):
     """
     __tablename__ = 'user_core'
     upstream_id = Column(Integer, ForeignKey("user_core.id")) # بالادستی
-    phone_number = Column(String(11)) # شماره تلفن
+    phone_number = Column(String(11), unique=True, index=True) # شماره تلفن
     first_name = Column(String(32)) # نام
     last_name = Column(String(32)) # نام خانوادگی
     # -------------------------------------------------------------
@@ -143,7 +143,7 @@ class UserTelegramModel(BaseModel):
         unique=True, 
         index=True
     )
-    tel_chat_id = Column(String(128)) # شناسه چت تلگرام
+    tel_chat_id = Column(String(128), unique=True, index=True) # شناسه چت تلگرام
     tel_bot_token = Column(String(128), nullable=True) # توکن بات تلگرام   
     tel_channel_id = Column(String(128), nullable=True) # شناسه کانال تلگرام
     tel_support_id = Column(String(128), nullable=True) # شناسه پشتیبان تلگرام
