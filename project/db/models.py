@@ -177,7 +177,7 @@ class PurchaseInvoiceModel(BaseModel):
         server_default=text("'waiting'")
     ) # وضعیت
     base_price = Column(String(16)) # قیمت پایه
-    discount_amount = Column(String(16)) # مقدار تخفیف
+    discount_amount = Column(String(16), default="0") # مقدار تخفیف
     total_price = Column(String(16)) # قیمت کل
     descriptions = Column(String) # توضیحات
     config_output = Column(Boolean, default=False) # خروجی کانفیگ
