@@ -55,6 +55,6 @@ class UserUpdatePassword(BaseModel):
 
 class UserActiveRepresentationSchema(BaseModel):
     base_purchase_price: str = Field(max_length=16)
-    tel_bot_token: str = Field(..., max_length=128)
+    tel_bot_token: str = Field(max_length=128)
 
 
