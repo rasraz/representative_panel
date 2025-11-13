@@ -37,7 +37,7 @@ def create_user(db: Session, data: UserCreateSchema, current_user: UserCoreModel
 
 
 def get_user(db: Session, user_id: int, current_user: UserCoreModel) -> UserCoreModel:
-    """برای دریافت یک کاربر با شناسه خاص"""
+    """برای دریافت یک کاربر از زیر مجموعه ها با شناسه خاص"""
     query = db.query(UserCoreModel).options(
         joinedload(UserCoreModel.auth),
         joinedload(UserCoreModel.telegram)
@@ -62,8 +62,8 @@ def get_all_users(db: Session, current_user: UserCoreModel, skip: int=0, limit: 
     return all_users
 
 
-def update_password(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdatePassword) -> UserCoreModel:
-    """برای به روزرسانی رمز عبور کاربری خاص"""
+def update_password_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdatePassword) -> UserCoreModel:
+    """برای به روزرسانی رمز عبور خود کاربر"""
     user = get_user(db, user_id, current_user)
     user.auth.password = hash_password(data.password)
     user.auth.password_changed_at = datetime.now(timezone.utc)
@@ -71,13 +71,29 @@ def update_password(db: Session, user_id: int, current_user: UserCoreModel, data
     return user
 
 
-def update_fullname(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdateSchema) -> UserCoreModel:
-    """برای به روزرسانی نام یا نام خانوادگی کاربری خاص"""
+def update_password_selfuser(db: Session, current_user: UserCoreModel, data: UserUpdatePassword) -> UserCoreModel:
+    """برای به روزرسانی رمز عبور کاربر زیرمجموعه خاص"""
+    current_user.auth.password = hash_password(data.password)
+    current_user.auth.password_changed_at = datetime.now(timezone.utc)
+    db.commit()
+    return current_user
+
+
+def update_fullname_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdateSchema) -> UserCoreModel:
+    """برای به روزرسانی نام یا نام خانوادگی کاربر زیرمجموعه خاص"""
     user = get_user(db, user_id, current_user)
     user.first_name = data.first_name
     user.last_name = data.last_name
     db.commit()
     return user
+
+
+def update_fullname_selfuser(db: Session, current_user: UserCoreModel, data: UserUpdateSchema) -> UserCoreModel:
+    """برای به روزرسانی نام یا نام خانوادگی خود کاربر"""
+    current_user.first_name = data.first_name
+    current_user.last_name = data.last_name
+    db.commit()
+    return current_user
 
 
 def deactive_user(db: Session, user_id:int, current_user: UserCoreModel) -> UserCoreModel:
