@@ -121,10 +121,10 @@ class UserFinanceModel(BaseModel):
         unique=True, 
         index=True
     )
-    wallet_balance =Column(Integer) # موجودی کیف پول
-    card_number = Column(String(16)) # شماره کارت
-    total_volume = Column(String(16)) # حجم کل (بر حسب گیگابایت)
-    sales_volume_ceiling = Column(Integer) # سقف حجم قابل فروش
+    wallet_balance =Column(Integer, default=0) # موجودی کیف پول
+    card_number = Column(String(16), nullable=True) # شماره کارت
+    total_volume = Column(String(16), default="0") # حجم کل (بر حسب گیگابایت)
+    sales_volume_ceiling = Column(Integer, default=0) # سقف حجم قابل فروش
     base_selling_price = Column(String(16)) # قیمت پایه فروش
     base_purchase_price = Column(String(16)) # قیمت پایه خرید
 
