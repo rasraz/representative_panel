@@ -22,6 +22,7 @@ class UserCoreModel(BaseModel):
     phone_number = Column(String(11), unique=True, index=True) # شماره تلفن
     first_name = Column(String(32)) # نام
     last_name = Column(String(32)) # نام خانوادگی
+    create_dt = Column(DateTime(timezone=True), server_default=func.now()) # زمان ثبت نام
     # -------------------------------------------------------------
     auth = relationship( # احرازهویت کاربر
         "UserAuthModel", 
