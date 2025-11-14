@@ -158,9 +158,9 @@ class UserTelegramModel(BaseModel):
     tel_support_id = Column(String(128), nullable=True) # شناسه پشتیبان تلگرام
 
 
-class InvoiceStatus_choices(enum.Enum):
+class WalletInvoiceStatusChoices(enum.Enum):
     """
-    حالت های وضعیت برای فاکتور‌ها
+    حالت های وضعیت برای فاکتور‌های کیف پول
     """
     WAITING = "waiting" # در انتظار
     CONFIRMED = "confirmed" # تایید شده
@@ -177,11 +177,10 @@ class WalletRechargeInvoiceModel(BaseModel):
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     charge_amount = Column(String(16)) # مبلغ شارژ
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
-    expiration_at = Column(DateTime(timezone=True)) # تاریخ انقضاي
     status = Column(
-        Enum(InvoiceStatus_choices), 
+        Enum(WalletInvoiceStatusChoices), 
         nullable=False, 
-        default=InvoiceStatus_choices.WAITING,
+        default=WalletInvoiceStatusChoices.WAITING.value,
         server_default=text("'waiting'")
     ) # وضعیت
     descriptions = Column(String) # توضیحات
@@ -208,7 +207,6 @@ class ConfigurationInvoiceModel(BaseModel):
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     volume = Column(String(16)) # حجم
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
-    expiration_at = Column(DateTime(timezone=True)) # تاریخ انقضاي
     base_price = Column(String(16)) # قیمت پایه
     discount_amount = Column(String(16), default="0") # مقدار تخفیف
     total_price = Column(String(16)) # قیمت کل

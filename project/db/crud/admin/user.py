@@ -3,39 +3,14 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
 
-from project.core.schemas.user_schemas import (
-    UserCreateSchema, 
-    UserUpdatePassword, 
-    UserUpdateSchema, 
-    UserActiveRepresentationSchema,
-)
-from project.db.models import UserCoreModel, UserAuthModel, UserTelegramModel, UserFinanceModel
-from project.core.auth.auth import hash_password, generate_hash_password_by_phone_number
+from project.core.schemas.admin.user import UserActiveRepresentationSchema, UserUpdateInfoSchema
+from project.core.schemas.other.user import UserUpdatePasswordSchema
+from project.db.models import UserCoreModel, UserFinanceModel
+from project.core.auth.auth import hash_password
 
 
-
-def create_user(db: Session, data: UserCreateSchema, current_user: UserCoreModel | None = None) -> UserCoreModel:
-    """برای ثبت نام اولیه یک کاربر جدید"""
-    hashed_password = generate_hash_password_by_phone_number(data.phone_number)
-    try:
-        with db.begin():
-            db_core_user = UserCoreModel(upstream=current_user, **data.model_dump()) 
-            db_auth_user = UserAuthModel(user_core=db_core_user, password=hashed_password, password_changed_at=datetime.now(timezone.utc))
-            db_tel_user = UserTelegramModel(user_core=db_core_user, tel_chat_id=data.tel_chat_id)
-            db.add(db_core_user, db_auth_user, db_tel_user)
-            db.commit()
-        db.refresh(db_core_user)
-        return db_core_user
-    except IntegrityError as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail="User with this phone number already exists.") from e
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to create user.") from e
-
-
+# -----------------------------------------------------------------------------------------
 def get_user(db: Session, user_id: int, current_user: UserCoreModel) -> UserCoreModel:
     """برای دریافت یک کاربر از زیر مجموعه ها با شناسه خاص"""
     query = db.query(UserCoreModel).options(
@@ -52,7 +27,7 @@ def get_user(db: Session, user_id: int, current_user: UserCoreModel) -> UserCore
         )
     return user
 
-
+# -----------------------------------------------------------------------------------------
 def get_all_users(db: Session, current_user: UserCoreModel, skip: int=0, limit: int=10) -> List[UserCoreModel]:
     """برای دریافت تمامی کاربران زیر مجموعه مستفیم"""
     query = db.query(UserCoreModel)
@@ -61,8 +36,8 @@ def get_all_users(db: Session, current_user: UserCoreModel, skip: int=0, limit: 
     all_users = query.order_by(UserCoreModel.create_dt.desc()).offset(skip).limit(limit)
     return all_users
 
-
-def update_password_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdatePassword) -> UserCoreModel:
+# -----------------------------------------------------------------------------------------
+def update_password_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdatePasswordSchema) -> UserCoreModel:
     """برای به روزرسانی رمز عبور خود کاربر"""
     user = get_user(db, user_id, current_user)
     user.auth.password = hash_password(data.password)
@@ -70,16 +45,8 @@ def update_password_subuser(db: Session, user_id: int, current_user: UserCoreMod
     db.commit()
     return user
 
-
-def update_password_selfuser(db: Session, current_user: UserCoreModel, data: UserUpdatePassword) -> UserCoreModel:
-    """برای به روزرسانی رمز عبور کاربر زیرمجموعه خاص"""
-    current_user.auth.password = hash_password(data.password)
-    current_user.auth.password_changed_at = datetime.now(timezone.utc)
-    db.commit()
-    return current_user
-
-
-def update_fullname_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdateSchema) -> UserCoreModel:
+# -----------------------------------------------------------------------------------------
+def update_fullname_subuser(db: Session, user_id: int, current_user: UserCoreModel, data: UserUpdateInfoSchema) -> UserCoreModel:
     """برای به روزرسانی نام یا نام خانوادگی کاربر زیرمجموعه خاص"""
     user = get_user(db, user_id, current_user)
     user.first_name = data.first_name
@@ -87,15 +54,7 @@ def update_fullname_subuser(db: Session, user_id: int, current_user: UserCoreMod
     db.commit()
     return user
 
-
-def update_fullname_selfuser(db: Session, current_user: UserCoreModel, data: UserUpdateSchema) -> UserCoreModel:
-    """برای به روزرسانی نام یا نام خانوادگی خود کاربر"""
-    current_user.first_name = data.first_name
-    current_user.last_name = data.last_name
-    db.commit()
-    return current_user
-
-
+# -----------------------------------------------------------------------------------------
 def deactive_user(db: Session, user_id:int, current_user: UserCoreModel) -> UserCoreModel:
     """برای غیر فعال سازی حساب کاربر خاص"""
     user = get_user(db, user_id, current_user)
@@ -104,7 +63,7 @@ def deactive_user(db: Session, user_id:int, current_user: UserCoreModel) -> User
     db.refresh(user)
     return user
 
-
+# -----------------------------------------------------------------------------------------
 def delete_user(db: Session, user_id:int, current_user: UserCoreModel) -> UserCoreModel:
     """برای حذف یک کاربر خاص از زیر مجموعه‌های مستقیم"""
     user = get_user(db, user_id, current_user)
@@ -112,7 +71,7 @@ def delete_user(db: Session, user_id:int, current_user: UserCoreModel) -> UserCo
     db.commit()
     return user
 
-
+# -----------------------------------------------------------------------------------------
 def activation_of_representation_user(
     db: Session, 
     user_id:int, 

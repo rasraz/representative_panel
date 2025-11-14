@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
 
-
+# ---------------------------------------------------------------------
 class UserCreateSchema(BaseModel):
     phone_number: str = Field(..., max_length=11, min_length=11)
     first_name: str = Field(..., max_length=16)
@@ -16,20 +16,20 @@ class UserCreateSchema(BaseModel):
         if not v.startswith("09"):
             raise ValueError("Phone number must be started by 09")
         return v
-
-
+    
+# ---------------------------------------------------------------------
 class UserReadSchema(BaseModel):
     phone_number: str = Field(..., max_length=11, min_length=11)
     first_name: str = Field(..., max_length=16)
     last_name: str = Field(..., max_length=16)
-
-
-class UserUpdateSchema(BaseModel):
+    
+# ---------------------------------------------------------------------
+class UserUpdateInfoSchema(BaseModel):
     first_name: str = Field(max_length=16)
     last_name: str = Field(max_length=16)
-
-
-class UserUpdatePassword(BaseModel):
+    
+# ---------------------------------------------------------------------
+class UserUpdatePasswordSchema(BaseModel):
     otp: str = Field(min_length=5, max_length=5)
     password: str = Field(min_length=8)
     password_conf: str = Field(min_length=8)
@@ -51,10 +51,11 @@ class UserUpdatePassword(BaseModel):
         if not(has_lower and has_upper):
             raise ValueError("The password must include uppercase and lowercase English letters")
         return v
+    
 
 
-class UserActiveRepresentationSchema(BaseModel):
-    base_purchase_price: str = Field(max_length=16)
-    tel_bot_token: str = Field(max_length=128)
+
+
+
 
 
