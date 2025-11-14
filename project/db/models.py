@@ -54,14 +54,24 @@ class UserCoreModel(BaseModel):
         "UserCoreModel", 
         back_populates="upstream"
     )
-    buyer_invoice = relationship( # فاکتور های خرید کاربر
-        "PurchaseInvoiceModel", 
-        foreign_keys="PurchaseInvoiceModel.buyer_user_id", 
+    buyer_wallet_invoice = relationship( # فاکتور های خرید کاربر
+        "WalletRechargeInvoiceModel", 
+        foreign_keys="WalletRechargeInvoiceModel.buyer_user_id", 
         back_populates="buyer_user"
     )
-    seller_invoice = relationship( # فاکتور های فروش کاربر
-        "PurchaseInvoiceModel", 
-        foreign_keys="PurchaseInvoiceModel.seller_user_id", 
+    seller_wallet_invoice = relationship( # فاکتور های فروش کاربر
+        "WalletRechargeInvoiceModel", 
+        foreign_keys="WalletRechargeInvoiceModel.seller_user_id", 
+        back_populates="seller_user"
+    )
+    buyer_configuration_invoice = relationship( # فاکتور های خرید کاربر
+        "ConfigurationInvoiceModel", 
+        foreign_keys="ConfigurationInvoiceModel.buyer_user_id", 
+        back_populates="buyer_user"
+    )
+    seller_configuration_invoice = relationship( # فاکتور های فروش کاربر
+        "ConfigurationInvoiceModel", 
+        foreign_keys="ConfigurationInvoiceModel.seller_user_id", 
         back_populates="seller_user"
     )
     seller_discounts = relationship( # تخفیف های فروش کاربر
@@ -162,7 +172,7 @@ class WalletRechargeInvoiceModel(BaseModel):
     مدل فاکتورهای شارژ کیف پول
     این مدل برای ثبت تاریخچه خرید ها و تراکنش های انجام شده کاربر برای شارژ کیف پول است
     """
-    __tablename__ = 'purchase_invoices'
+    __tablename__ = 'wallet_recharge_invoices'
     buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     charge_amount = Column(String(16)) # مبلغ شارژ
@@ -179,21 +189,21 @@ class WalletRechargeInvoiceModel(BaseModel):
     buyer_user = relationship( # کاربر خریدار
         "UserCoreModel",
         foreign_keys=[buyer_user_id],
-        back_populates="buyer_invoice"
+        back_populates="buyer_wallet_invoice"
     )
     seller_user = relationship( # کاربر فروشنده
         "UserCoreModel",
         foreign_keys=[seller_user_id],
-        back_populates="seller_invoice"
+        back_populates="seller_wallet_invoice"
     )
 
 
-class PurchaseInvoiceModel(BaseModel):
+class ConfigurationInvoiceModel(BaseModel):
     """
-    مدل فاکتورهای خرید
-    این مدل برای ثبت تاریخچه خرید ها و تراکنش هایانجام شده هر کاربر است
+    مدل فاکتورهای کانفیگ
+    این مدل برای ثبت تاریخچه دریافت کانفیگ هر کاربر است
     """
-    __tablename__ = 'purchase_invoices'
+    __tablename__ = 'configuration_invoices'
     buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     volume = Column(String(16)) # حجم
@@ -207,12 +217,12 @@ class PurchaseInvoiceModel(BaseModel):
     buyer_user = relationship( # کاربر خریدار
         "UserCoreModel",
         foreign_keys=[buyer_user_id],
-        back_populates="buyer_invoice"
+        back_populates="buyer_configuration_invoice"
     )
     seller_user = relationship( # کاربر فروشنده
         "UserCoreModel",
         foreign_keys=[seller_user_id],
-        back_populates="seller_invoice"
+        back_populates="seller_configuration_invoice"
     )
 
 
