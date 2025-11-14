@@ -123,8 +123,6 @@ class UserFinanceModel(BaseModel):
     )
     wallet_balance =Column(Integer, default=0) # موجودی کیف پول
     card_number = Column(String(16), nullable=True) # شماره کارت
-    total_volume = Column(String(16), default="0") # حجم کل (بر حسب گیگابایت)
-    sales_volume_ceiling = Column(Integer, default=0) # سقف حجم قابل فروش
     base_selling_price = Column(String(16)) # قیمت پایه فروش
     base_purchase_price = Column(String(16)) # قیمت پایه خرید
 
@@ -159,6 +157,37 @@ class InvoiceStatus_choices(enum.Enum):
     REJECTED = "rejected" # رد شده
 
 
+class WalletRechargeInvoiceModel(BaseModel):
+    """
+    مدل فاکتورهای شارژ کیف پول
+    این مدل برای ثبت تاریخچه خرید ها و تراکنش های انجام شده کاربر برای شارژ کیف پول است
+    """
+    __tablename__ = 'purchase_invoices'
+    buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
+    seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
+    charge_amount = Column(String(16)) # مبلغ شارژ
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
+    expiration_at = Column(DateTime(timezone=True)) # تاریخ انقضاي
+    status = Column(
+        Enum(InvoiceStatus_choices), 
+        nullable=False, 
+        default=InvoiceStatus_choices.WAITING,
+        server_default=text("'waiting'")
+    ) # وضعیت
+    descriptions = Column(String) # توضیحات
+    # --------------------------------------------------------------------
+    buyer_user = relationship( # کاربر خریدار
+        "UserCoreModel",
+        foreign_keys=[buyer_user_id],
+        back_populates="buyer_invoice"
+    )
+    seller_user = relationship( # کاربر فروشنده
+        "UserCoreModel",
+        foreign_keys=[seller_user_id],
+        back_populates="seller_invoice"
+    )
+
+
 class PurchaseInvoiceModel(BaseModel):
     """
     مدل فاکتورهای خرید
@@ -168,19 +197,12 @@ class PurchaseInvoiceModel(BaseModel):
     buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     volume = Column(String(16)) # حجم
-    create_dt = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ثبت
-    expiration_dt = Column(DateTime(timezone=True)) # تاریخ انقضاي
-    status = Column(
-        Enum(InvoiceStatus_choices), 
-        nullable=False, 
-        default=InvoiceStatus_choices.WAITING,
-        server_default=text("'waiting'")
-    ) # وضعیت
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
+    expiration_at = Column(DateTime(timezone=True)) # تاریخ انقضاي
     base_price = Column(String(16)) # قیمت پایه
     discount_amount = Column(String(16), default="0") # مقدار تخفیف
     total_price = Column(String(16)) # قیمت کل
     descriptions = Column(String) # توضیحات
-    config_output = Column(Boolean, default=False) # خروجی کانفیگ
     # --------------------------------------------------------------------
     buyer_user = relationship( # کاربر خریدار
         "UserCoreModel",
