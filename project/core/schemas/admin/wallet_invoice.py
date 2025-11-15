@@ -12,6 +12,7 @@ class WalletInvoiceStatusChoices(enum.Enum):
     WAITING = "waiting" # در انتظار
     CONFIRMED = "confirmed" # تایید شده
     REJECTED = "rejected" # رد شده
+    PAY_WALLET = "pay_wallet" # پرداخت شده به کیف پول
     
     
     

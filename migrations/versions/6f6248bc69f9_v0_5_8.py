@@ -1,8 +1,8 @@
-"""create first migration
+"""v0.5.8
 
-Revision ID: 5a5a530e6069
+Revision ID: 6f6248bc69f9
 Revises: 
-Create Date: 2025-09-01 23:42:22.831184
+Create Date: 2025-11-15 16:07:22.684924
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5a5a530e6069'
+revision: str = '6f6248bc69f9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,11 +24,26 @@ def upgrade() -> None:
     op.create_table('user_core',
     sa.Column('upstream_id', sa.Integer(), nullable=True),
     sa.Column('phone_number', sa.String(length=11), nullable=True),
-    sa.Column('national_code', sa.String(length=10), nullable=True),
     sa.Column('first_name', sa.String(length=32), nullable=True),
     sa.Column('last_name', sa.String(length=32), nullable=True),
+    sa.Column('create_dt', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.ForeignKeyConstraint(['upstream_id'], ['user_core.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_user_core_phone_number'), 'user_core', ['phone_number'], unique=True)
+    op.create_table('configuration_invoices',
+    sa.Column('buyer_user_id', sa.Integer(), nullable=True),
+    sa.Column('seller_user_id', sa.Integer(), nullable=True),
+    sa.Column('volume', sa.String(length=16), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('base_price', sa.String(length=16), nullable=True),
+    sa.Column('discount_amount', sa.String(length=16), nullable=True),
+    sa.Column('total_price', sa.String(length=16), nullable=True),
+    sa.Column('descriptions', sa.String(), nullable=True),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.ForeignKeyConstraint(['buyer_user_id'], ['user_core.id'], ),
+    sa.ForeignKeyConstraint(['seller_user_id'], ['user_core.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('discount',
@@ -47,28 +62,15 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['seller_user_id'], ['user_core.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('purchase_invoices',
-    sa.Column('buyer_user_id', sa.Integer(), nullable=True),
-    sa.Column('seller_user_id', sa.Integer(), nullable=True),
-    sa.Column('volume', sa.String(length=16), nullable=True),
-    sa.Column('create_dt', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('expiration_dt', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('status', sa.Enum('WAITING', 'CONFIRMED', 'REJECTED', name='invoicestatus_choices'), server_default=sa.text("'waiting'"), nullable=False),
-    sa.Column('base_price', sa.String(length=16), nullable=True),
-    sa.Column('discount_amount', sa.String(length=16), nullable=True),
-    sa.Column('total_price', sa.String(length=16), nullable=True),
-    sa.Column('descriptions', sa.String(), nullable=True),
-    sa.Column('config_output', sa.Boolean(), nullable=True),
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.ForeignKeyConstraint(['buyer_user_id'], ['user_core.id'], ),
-    sa.ForeignKeyConstraint(['seller_user_id'], ['user_core.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('user_auth',
     sa.Column('user_core', sa.Integer(), nullable=True),
     sa.Column('password', sa.String(length=128), nullable=True),
+    sa.Column('password_changed_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('two_step_verification', sa.Boolean(), nullable=True),
+    sa.Column('otp_code', sa.String(length=5), nullable=True),
+    sa.Column('otp_exp', sa.DateTime(timezone=True), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.Column('is_repres', sa.Boolean(), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.ForeignKeyConstraint(['user_core'], ['user_core.id'], ondelete='CASCADE'),
@@ -78,9 +80,9 @@ def upgrade() -> None:
     op.create_table('user_finance',
     sa.Column('user_core', sa.Integer(), nullable=True),
     sa.Column('wallet_balance', sa.Integer(), nullable=True),
-    sa.Column('total_volume', sa.String(length=16), nullable=True),
-    sa.Column('sales_volume_ceiling', sa.Integer(), nullable=True),
-    sa.Column('base_price', sa.String(length=16), nullable=True),
+    sa.Column('card_number', sa.String(length=16), nullable=True),
+    sa.Column('base_selling_price', sa.String(length=16), nullable=True),
+    sa.Column('base_purchase_price', sa.String(length=16), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.ForeignKeyConstraint(['user_core'], ['user_core.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -91,11 +93,25 @@ def upgrade() -> None:
     sa.Column('tel_chat_id', sa.String(length=128), nullable=True),
     sa.Column('tel_bot_token', sa.String(length=128), nullable=True),
     sa.Column('tel_channel_id', sa.String(length=128), nullable=True),
+    sa.Column('tel_support_id', sa.String(length=128), nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.ForeignKeyConstraint(['user_core'], ['user_core.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_user_telegram_tel_chat_id'), 'user_telegram', ['tel_chat_id'], unique=True)
     op.create_index(op.f('ix_user_telegram_user_core'), 'user_telegram', ['user_core'], unique=True)
+    op.create_table('wallet_recharge_invoices',
+    sa.Column('buyer_user_id', sa.Integer(), nullable=True),
+    sa.Column('seller_user_id', sa.Integer(), nullable=True),
+    sa.Column('charge_amount', sa.String(length=16), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('status', sa.Enum('WAITING', 'CONFIRMED', 'REJECTED', 'PAY_WALLET', name='walletinvoicestatuschoices'), server_default=sa.text("'waiting'"), nullable=False),
+    sa.Column('descriptions', sa.String(), nullable=True),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.ForeignKeyConstraint(['buyer_user_id'], ['user_core.id'], ),
+    sa.ForeignKeyConstraint(['seller_user_id'], ['user_core.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user_discount',
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('discount_id', sa.Integer(), nullable=True),
@@ -113,13 +129,16 @@ def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('user_discount')
+    op.drop_table('wallet_recharge_invoices')
     op.drop_index(op.f('ix_user_telegram_user_core'), table_name='user_telegram')
+    op.drop_index(op.f('ix_user_telegram_tel_chat_id'), table_name='user_telegram')
     op.drop_table('user_telegram')
     op.drop_index(op.f('ix_user_finance_user_core'), table_name='user_finance')
     op.drop_table('user_finance')
     op.drop_index(op.f('ix_user_auth_user_core'), table_name='user_auth')
     op.drop_table('user_auth')
-    op.drop_table('purchase_invoices')
     op.drop_table('discount')
+    op.drop_table('configuration_invoices')
+    op.drop_index(op.f('ix_user_core_phone_number'), table_name='user_core')
     op.drop_table('user_core')
     # ### end Alembic commands ###
