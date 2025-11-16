@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from project.core.schemas.other import WalletInvoiceCreateSchemas
+from project.core.schemas.other.wallet_invoice import WalletInvoiceCreateSchemas
 from project.db.models import UserCoreModel, WalletRechargeInvoiceModel
 
 
