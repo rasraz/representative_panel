@@ -15,10 +15,11 @@ def create_wallet_invoice(
     try:
         with db.begin():
             db_wallet_invoice = WalletRechargeInvoiceModel(
-               buyer_user=current_user,
-               seller_user=current_user.upstream,
-               charge_amount=data.charge_amount,
-               descriptions=data.descriptions,
+                buyer_user=current_user,
+                seller_user=current_user.upstream,
+                charge_amount=data.charge_amount,
+                get_config=data.get_config,
+                descriptions=data.descriptions,
             )
             db.add(db_wallet_invoice)
             db.commit()
