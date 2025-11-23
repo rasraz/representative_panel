@@ -9,8 +9,3 @@ class ConfigInvoiceCreateSchemas(BaseModel):
     descriptions: Optional[str] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
-
-
-
-
-

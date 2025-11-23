@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from project.core.schemas.other.config_invoice import ConfigInvoiceCreateSchemas
+from project.core.app_config.schema import ConfigInvoiceCreateSchemas
 from project.db.models import UserCoreModel, ConfigurationInvoiceModel
 
 

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import jwt
 from passlib.context import CryptContext
-from project.core.main.config import settings
+from project.core.config import settings
  
 
 SECRET_KEY = settings.SECRET_KEY 

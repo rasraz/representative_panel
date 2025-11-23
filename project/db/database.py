@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from project.core.main.config import settings
+from project.core.config import settings
 
 from .models import Base
 

@@ -3,13 +3,19 @@ from sqlalchemy.orm import Session
 
 from project.db.database import get_session
 from project.db.models import UserCoreModel
-from project.core.schemas.other.user import UserCreateSchema, UserReadSchema
-from project.core.schemas.other.wallet_invoice import WalletInvoiceCreateSchemas, WalletInvoiceReadSchemas
-from project.core.schemas.other.config_invoice import ConfigInvoiceCreateSchemas, ConfigInvoiceReadSchemas
 from project.core.auth.dependencies import get_current_user
-from project.db.crud.other.user import create_user
-from project.db.crud.other.wallet_invoice import create_wallet_invoice, wallet_invoice_accept
-from project.db.crud.other.config_invoice import create_config_invoice
+from project.db.crud.user import create_user
+from project.db.crud.wallet import create_wallet_invoice, wallet_invoice_accept
+from project.db.crud.config import create_config_invoice
+
+from .schema import (
+    UserCreateSchema,
+    UserReadSchema,
+    WalletInvoiceCreateSchemas, 
+    WalletInvoiceReadSchemas,
+    ConfigInvoiceCreateSchemas, 
+    ConfigInvoiceReadSchemas,
+)
 
 
 router = APIRouter(prefix="/bot")
