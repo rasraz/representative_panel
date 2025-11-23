@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from project.db.database import get_session
+from project.db.models import UserCoreModel
+from project.core.schemas.other.user import UserCreateSchema, UserReadSchema
+from project.core.schemas.other.wallet_invoice import WalletInvoiceCreateSchemas, WalletInvoiceReadSchemas
+from project.core.schemas.other.config_invoice import ConfigInvoiceCreateSchemas, ConfigInvoiceReadSchemas
+from project.core.auth.dependencies import get_current_user
+from project.db.crud.other.user import create_user
+from project.db.crud.other.wallet_invoice import create_wallet_invoice, wallet_invoice_accept
+from project.db.crud.other.config_invoice import create_config_invoice
+
+
+router = APIRouter(prefix="/bot")
+# TODO: فعلا برای شناسایی کاربر از user عادی استفاده میکنیم تا بعدا سیسیتم احراز هویت ربات درخواست ارسال کننده را پیدا کنیم.
+
+# ---------------------------------------------------
+@router.post("/user/creat", response_model=UserReadSchema)
+def create_user_api(data: UserCreateSchema, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
+    user_created = create_user(data, db, user)
+    return user_created
+
+# ---------------------------------------------------
+@router.post("/wallet", response_model=WalletInvoiceReadSchemas)
+def wallet_charge_api(data: WalletInvoiceCreateSchemas, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
+    wallet_invoice_obj = create_wallet_invoice(db, data, user)
+    return wallet_invoice_obj
+
+# ---------------------------------------------------
+@router.get("/wallet/{invoice_id}/accept/{accepted}", response_model=WalletInvoiceReadSchemas)
+def wallet_charge_accept_api(invoice_id: int, accepted: bool, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
+    wallet_invoice_obj = wallet_invoice_accept(db, invoice_id, accepted, user)
+    return wallet_invoice_obj
+
+# ---------------------------------------------------
+@router.post("/config", response_model=ConfigInvoiceReadSchemas)
+def create_config_api(data: ConfigInvoiceCreateSchemas, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
+    config_invoice_obj = create_config_invoice(db, data, user)
+    return config_invoice_obj
+
+
+
+
+
+
+
+

@@ -177,7 +177,7 @@ class WalletRechargeInvoiceModel(BaseModel):
     buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
     seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
     charge_amount = Column(String(16)) # مبلغ شارژ
-    get_config = Column(Boolean, default=False)
+    get_config = Column(Boolean, default=False) # دریافت کانفیگ
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
     status = Column(
         Enum(WalletInvoiceStatusChoices), 
