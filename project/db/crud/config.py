@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from project.core.app_config.schema import ConfigInvoiceCreateSchemas
 from project.db.models import UserCoreModel, ConfigurationInvoiceModel
 
+from .user import wallet_balance_sufficient
+
 
 # --------------------------------------------------
 def create_config_invoice(
@@ -16,7 +18,7 @@ def create_config_invoice(
         price = current_user.finance.base_purchase_price
     else:
         price = current_user.upstream.finance.base_selling_price
-    if current_user.finance.wallet_balance < price:
+    if not wallet_balance_sufficient(current_user, price):
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Wallet balance is insufficient"

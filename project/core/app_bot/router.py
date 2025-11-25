@@ -5,7 +5,7 @@ from project.db.database import get_session
 from project.db.models import UserCoreModel
 from project.core.auth.dependencies import get_current_user
 from project.db.crud.user import create_user
-from project.db.crud.wallet import create_wallet_invoice, wallet_invoice_accept
+from project.db.crud.wallet import create_wallet_invoice, accept_wallet_invoice, adding_charge_to_wallet
 from project.db.crud.config import create_config_invoice
 
 from .schema import (
@@ -36,7 +36,7 @@ def wallet_charge_api(data: WalletInvoiceCreateSchemas, db: Session=Depends(get_
 # ---------------------------------------------------
 @router.get("/wallet/{invoice_id}/accept/{accepted}", response_model=WalletInvoiceReadSchemas)
 def wallet_charge_accept_api(invoice_id: int, accepted: bool, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
-    wallet_invoice_obj = wallet_invoice_accept(db, invoice_id, accepted, user)
+    wallet_invoice_obj = accept_wallet_invoice(db, invoice_id, user, accepted)
     return wallet_invoice_obj
 
 # ---------------------------------------------------

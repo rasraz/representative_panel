@@ -10,6 +10,13 @@ from project.db.models import UserCoreModel, UserFinanceModel, UserTelegramModel
 from project.core.auth.auth import hash_password, generate_hash_password_by_phone_number
 
 
+# ---------------------------------------
+def wallet_balance_sufficient(user: UserCoreModel, amount: str):
+    wallet_balance = user.finance.wallet_balance
+    if int(wallet_balance) < int(amount):
+        return False
+    return True
+
 # -----------------------------------------------------------------------------------------
 def get_user(db: Session, user_id: int, current_user: UserCoreModel) -> UserCoreModel:
     """برای دریافت یک کاربر از زیر مجموعه ها با شناسه خاص"""

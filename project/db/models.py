@@ -162,10 +162,12 @@ class WalletInvoiceStatusChoices(enum.Enum):
     """
     حالت های وضعیت برای فاکتور‌های کیف پول
     """
+    PRE_FACTURE = "pre_factore" # پیش فاکتور
     WAITING = "waiting" # در انتظار
     CONFIRMED = "confirmed" # تایید شده
     REJECTED = "rejected" # رد شده
     PAY_WALLET = "pay_wallet" # پرداخت شده به کیف پول
+    CONFIGURATION_DIRECTE = "configuration_directe" # کانفیگ مستقیم
 
 
 class WalletRechargeInvoiceModel(BaseModel):
