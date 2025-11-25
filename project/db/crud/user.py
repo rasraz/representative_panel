@@ -12,6 +12,7 @@ from project.core.auth.auth import hash_password, generate_hash_password_by_phon
 
 # ---------------------------------------
 def wallet_balance_sufficient(user: UserCoreModel, amount: str):
+    """برای بررسی موجودی کافی کیف پول کاربر"""
     wallet_balance = user.finance.wallet_balance
     if int(wallet_balance) < int(amount):
         return False
@@ -125,6 +126,17 @@ def create_user(db: Session, data: UserCreateSchema, current_user: UserCoreModel
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create user.") from e
+
+# ----------------------------------------------------------------------------------------------------------------
+def completion_repres_user(db: Session, data: UserCreateSchema, current_user: UserCoreModel | None = None) -> UserCoreModel:
+    """برای تکمیل اطلاعات یک کاربر نماینده"""
+    hashed_password = generate_hash_password_by_phone_number(data.phone_number)
+    current_user.phone_number = data.phone_number
+    current_user.first_name = data.first_name
+    current_user.last_name = data.last_name
+    current_user.auth.password = hashed_password
+    db.commit()
+    return current_user
 
 # ----------------------------------------------------------------------------------------------------------------
 def update_password_selfuser(db: Session, current_user: UserCoreModel, data: UserUpdatePasswordSchema) -> UserCoreModel:

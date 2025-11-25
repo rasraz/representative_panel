@@ -14,7 +14,7 @@ class UserActiveRepresentationSchema(BaseModel):
 
 # ---------------------------------------------------------------------
 class UserCreateSchema(BaseModel):
-    phone_number: str = Field(..., max_length=11, min_length=11)
+    phone_number: str = Field(max_length=11, min_length=11)
     first_name: str = Field(..., max_length=16)
     last_name: str = Field(..., max_length=16)
     tel_chat_id: str = Field(...)

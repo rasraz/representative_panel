@@ -4,16 +4,17 @@ from sqlalchemy.orm import Session
 from project.db.database import get_session
 from project.db.models import UserCoreModel
 from project.core.auth.dependencies import get_current_user
-from project.db.crud.user import create_user
-from project.db.crud.wallet import create_wallet_invoice, accept_wallet_invoice, adding_charge_to_wallet
+from project.db.crud.user import create_user, completion_repres_user
+from project.db.crud.wallet import create_wallet_invoice, accept_wallet_invoice
 from project.db.crud.config import create_config_invoice
 
 from .schema import (
     UserCreateSchema,
+    UserCompletionSchema,
     UserReadSchema,
-    WalletInvoiceCreateSchemas, 
+    WalletInvoiceCreateSchemas,
     WalletInvoiceReadSchemas,
-    ConfigInvoiceCreateSchemas, 
+    ConfigInvoiceCreateSchemas,
     ConfigInvoiceReadSchemas,
 )
 
@@ -26,6 +27,12 @@ router = APIRouter(prefix="/bot")
 def create_user_api(data: UserCreateSchema, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
     user_created = create_user(data, db, user)
     return user_created
+
+# ---------------------------------------------------
+@router.post("/user/completion-repres", response_model=UserReadSchema)
+def create_user_api(data: UserCompletionSchema, db: Session=Depends(get_session), user: UserCoreModel=Depends(get_current_user)):
+    user_repres = completion_repres_user(data, db, user)
+    return user_repres
 
 # ---------------------------------------------------
 @router.post("/wallet", response_model=WalletInvoiceReadSchemas)

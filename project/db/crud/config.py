@@ -9,8 +9,8 @@ from .user import wallet_balance_sufficient
 
 # --------------------------------------------------
 def create_config_invoice(
-    db: Session, 
-    data: ConfigInvoiceCreateSchemas, 
+    db: Session,
+    data: ConfigInvoiceCreateSchemas,
     current_user: UserCoreModel
     ) -> ConfigurationInvoiceModel:
     """برای ثبت رسید دریافت کانفیگ کاربر"""
