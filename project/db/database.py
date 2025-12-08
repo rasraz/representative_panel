@@ -7,7 +7,7 @@ from .models import Base
 
 
 
-engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine("sqlite:///./dev.db", connect_args={"check_same_thread": False})
 session = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 def create_db_and_tables():

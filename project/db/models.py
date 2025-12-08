@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey, text
+from sqlalchemy import Column, Integer, BigInteger, SmallInteger, String, Boolean, DateTime, Enum, ForeignKey, text, CheckConstraint
 from sqlalchemy.orm import relationship, DeclarativeBase
 from sqlalchemy.sql import func
 import enum
@@ -13,155 +13,156 @@ class BaseModel(Base):
 
 
 class UserCoreModel(BaseModel):
-    """
-    مدل هسته کاربری
-    این مدل هسته کاربری برای مدیریت و نگهداری داده های کاربر است
-    """
     __tablename__ = 'user_core'
     upstream_id = Column(Integer, ForeignKey("user_core.id")) # بالادستی
-    phone_number = Column(String(11), nullable=True, unique=True, index=True) # شماره تلفن
     first_name = Column(String(32)) # نام
     last_name = Column(String(32)) # نام خانوادگی
-    create_dt = Column(DateTime(timezone=True), server_default=func.now()) # زمان ثبت نام
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) # زمان ثبت نام
+    tel_user_id = Column(String(128), nullable=True) # شناسه کاربری تلگرام
+    tel_chat_id = Column(String(128)) # شناسه چت تلگرام
+    unique_id = Column(String(128), unique=True, index=True) #شناسه یکتا
+    is_active = Column(Boolean, default=True) # حساب کاربر فعال است
+    is_admin = Column(Boolean, default=False) # حساب کاربر ادمین است
+    is_repres = Column(Boolean, default=False) # حساب کاربر نماینده است
+    wallet_balance =Column(BigInteger, default=0, nullable=False) # موجودی کیف پول
+    __table_args__ = (
+        CheckConstraint('wallet_balance >= 0', name='ck_user_wallet_non_negative'),
+    )
     # -------------------------------------------------------------
-    auth = relationship( # احرازهویت کاربر
-        "UserAuthModel", 
-        backref="user_auth",
+    representative_core = relationship( # هسته نماینده
+        "RepresentativesCoreModel", 
+        backref="representatives_core",
         uselist=False,
         cascade="all, delete-orphan", 
         single_parent=True
     )
-    finance = relationship( # حسابرسی کاربر
-        "UserFinanceModel", 
-        backref="user_finance",
-        uselist=False,
+    configuration_panel = relationship( # پنل کانفیگ
+        "ConfigurationPanelModel", 
+        back_populates="user",
+        uselist=True,
         cascade="all, delete-orphan", 
-        single_parent=True
-    )
-    telegram = relationship( # تلگرام کاربر
-        "UserTelegramModel", 
-        backref="user_telegram",
-        uselist=False,
-        cascade="all, delete-orphan", 
-        single_parent=True
+        single_parent=True,
+        lazy="dynamic"
     )
     upstream = relationship( # بالادستی کاربر
         "UserCoreModel", 
         remote_side=[BaseModel.id], 
-        back_populates="downstream"
+        back_populates="downstream",
+        lazy="dynamic"
     )
     downstream = relationship( # پایین‌دستی کاربر
         "UserCoreModel", 
-        back_populates="upstream"
+        back_populates="upstream",
+        lazy="dynamic"
     )
-    buyer_wallet_invoice = relationship( # فاکتور های خرید کاربر
+    buyer_wallet_invoice = relationship( # فاکتور های  افزایش شارژ کیف پول کاربر
         "WalletRechargeInvoiceModel", 
         foreign_keys="WalletRechargeInvoiceModel.buyer_user_id", 
-        back_populates="buyer_user"
+        back_populates="buyer_user",
+        lazy="dynamic"
     )
-    seller_wallet_invoice = relationship( # فاکتور های فروش کاربر
+    seller_wallet_invoice = relationship( # فاکتور های کاهش شارژ کیف پول کاربر کاربر
         "WalletRechargeInvoiceModel", 
         foreign_keys="WalletRechargeInvoiceModel.seller_user_id", 
-        back_populates="seller_user"
+        back_populates="seller_user",
+        lazy="dynamic"
     )
-    buyer_configuration_invoice = relationship( # فاکتور های خرید کاربر
+    buyer_configuration_invoice = relationship( # فاکتور های خرید کانفیگ کاربر
         "ConfigurationInvoiceModel", 
         foreign_keys="ConfigurationInvoiceModel.buyer_user_id", 
-        back_populates="buyer_user"
+        back_populates="buyer_user",
+        lazy="dynamic"
     )
-    seller_configuration_invoice = relationship( # فاکتور های فروش کاربر
+    seller_configuration_invoice = relationship( # فاکتور های فروش کانفیگ کاربر
         "ConfigurationInvoiceModel", 
         foreign_keys="ConfigurationInvoiceModel.seller_user_id", 
-        back_populates="seller_user"
+        back_populates="seller_user",
+        lazy="dynamic"
     )
     seller_discounts = relationship( # تخفیف های فروش کاربر
         "DiscountModel", 
         foreign_keys="DiscountModel.seller_user_id", 
-        back_populates="seller_user"
+        back_populates="seller_user",
+        lazy="dynamic"
     )
     user_discounts = relationship( # تخفیف های خرید کاربر
         "UsersDiscountModel", 
         foreign_keys="UsersDiscountModel.user_id", 
-        back_populates="user"
+        back_populates="user",
+        lazy="dynamic"
+    )
+    buyer_configurations = relationship( # کانفیگ‌های خریداری شده کاربر
+        "ConfigurationsModel", 
+        foreign_keys="ConfigurationsModel.buyer_user_id", 
+        back_populates="buyer_user",
+        lazy="dynamic"
+    )
+    seller_configurations = relationship( # کانفیگ‌های فروخته شده کاربر
+        "ConfigurationsModel", 
+        foreign_keys="ConfigurationsModel.seller_user_id", 
+        back_populates="seller_user",
+        lazy="dynamic"
     )
 
 
-class UserAuthModel(BaseModel):
-    """
-    مدل احرازهویت کاربری
-    این مدل برای نگهداری داده های احرازهویت کاربر است
-    """
-    __tablename__ = 'user_auth'
-    user_core = Column( # هسته کاربری
+class ConfigurationPanelModel(BaseModel):
+    __tablename__ = 'configuration_panel_core'
+    user_core = Column( # هسته کاربر
         Integer, 
         ForeignKey(
-            'user_core.id', 
+            'user_core.id',
             ondelete="CASCADE"
         ), 
+        nullable=False,
+        index=True
+    )
+    name = Column(String(64)) # نام
+    url_address = Column(String) # آدرس
+    username = Column(String) # نام کاربری
+    password = Column(String) # رمز عبور
+    max_volume = Column(Integer) #حداکثر حجم
+    used_volume = Column(Integer) #حجم استفاده شده
+    is_active = Column(Boolean, default=True) #فعال
+    # -------------------------------------------------------------
+    user = relationship("UserCoreModel", back_populates="configuration_panel")
+
+
+class RepresentativesCoreModel(BaseModel):
+    __tablename__ = 'representatives_core'
+    user_core = Column( # هسته کاربر
+        Integer, 
+        ForeignKey(
+            'user_core.id',
+            ondelete="CASCADE"
+        ),
+        nullable=False,
         unique=True, 
         index=True
     )
-    password = Column(String(128)) # رمز عبور
+    phone_number = Column(String(11)) # شماره تلفن
+    password = Column(String(255)) # رمز عبور
     password_changed_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False
     ) # زمان آخرین تغییر رمزعبور
-    two_step_verification = Column(Boolean, default=False) # چک کردن امنیت 2 مرحله
-    otp_code = Column(String(5), nullable=True) # کد otp 
+    otp_code = Column(String(255), nullable=True) # کد otp 
     otp_exp = Column(DateTime(timezone=True)) # تاریخ انقضای کد otp
-    is_active = Column(Boolean, default=True) # حساب کاربر فعال است
-    is_admin = Column(Boolean, default=False) # حساب کاربر ادمین است
-    is_repres = Column(Boolean, default=False) # حساب کاربر نماینده است
-
-
-class UserFinanceModel(BaseModel):
-    """
-    مدل امورمالی کاربری
-    این مدل برای نگهداری داده های حسابرسی کاربر است
-    """
-    __tablename__ = 'user_finance'
-    user_core = Column( # هسته کاربری
-        Integer, 
-        ForeignKey(
-            'user_core.id', 
-            ondelete="CASCADE"
-        ), 
-        unique=True, 
-        index=True
-    )
-    wallet_balance =Column(Integer, default=0) # موجودی کیف پول
-    card_number = Column(String(16), nullable=True) # شماره کارت
-    base_selling_price = Column(String(16)) # قیمت پایه فروش
-    base_purchase_price = Column(String(16)) # قیمت پایه خرید
-
-
-class UserTelegramModel(BaseModel):
-    """
-    مدل تلگرام کاربری
-    این مدل برای نگهداری داده‌ها و اطلاعات تلگرام کاربر است
-    """
-    __tablename__ = 'user_telegram'
-    user_core = Column( # هسته کاربری
-        Integer, 
-        ForeignKey(
-            'user_core.id', 
-            ondelete="CASCADE"
-        ), 
-        unique=True, 
-        index=True
-    )
-    tel_chat_id = Column(String(128), unique=True, index=True) # شناسه چت تلگرام
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) # زمان ثبت نمایندگی
     tel_bot_token = Column(String(128), nullable=True) # توکن بات تلگرام   
     tel_channel_id = Column(String(128), nullable=True) # شناسه کانال تلگرام
     tel_support_id = Column(String(128), nullable=True) # شناسه پشتیبان تلگرام
+    card_number = Column(String(16), nullable=True) # شماره کارت
+    base_selling_price = Column(BigInteger, nullable=False) # قیمت پایه فروش
+    base_purchase_price = Column(BigInteger, nullable=False) # قیمت پایه خرید
+    __table_args__ = (
+        CheckConstraint('base_selling_price > 0', name='ck_rep_selling_price_positive'),
+        CheckConstraint('base_purchase_price >= 0', name='ck_rep_purchase_price_non_negative'),
+    )
 
 
 class WalletInvoiceStatusChoices(enum.Enum):
-    """
-    حالت های وضعیت برای فاکتور‌های کیف پول
-    """
     PRE_FACTURE = "pre_factore" # پیش فاکتور
     WAITING = "waiting" # در انتظار
     CONFIRMED = "confirmed" # تایید شده
@@ -171,14 +172,10 @@ class WalletInvoiceStatusChoices(enum.Enum):
 
 
 class WalletRechargeInvoiceModel(BaseModel):
-    """
-    مدل فاکتورهای شارژ کیف پول
-    این مدل برای ثبت تاریخچه خرید ها و تراکنش های انجام شده کاربر برای شارژ کیف پول است
-    """
     __tablename__ = 'wallet_recharge_invoices'
-    buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
-    seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
-    charge_amount = Column(String(16)) # مبلغ شارژ
+    buyer_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر خریدار
+    seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
+    charge_amount = Column(BigInteger) # مبلغ شارژ
     get_config = Column(Boolean, default=False) # دریافت کانفیگ
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
     status = Column(
@@ -202,18 +199,14 @@ class WalletRechargeInvoiceModel(BaseModel):
 
 
 class ConfigurationInvoiceModel(BaseModel):
-    """
-    مدل فاکتورهای کانفیگ
-    این مدل برای ثبت تاریخچه دریافت کانفیگ هر کاربر است
-    """
     __tablename__ = 'configuration_invoices'
-    buyer_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر خریدار
-    seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
-    volume = Column(String(16)) # حجم
+    buyer_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر خریدار
+    seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
+    volume = Column(Integer) # حجم
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
-    base_price = Column(String(16)) # قیمت پایه
-    discount_amount = Column(String(16), default="0") # مقدار تخفیف
-    total_price = Column(String(16)) # قیمت کل
+    base_price = Column(BigInteger) # قیمت پایه
+    discount_amount = Column(BigInteger, default=0, nullable=False) # مقدار تخفیف
+    total_price = Column(BigInteger) # قیمت کل
     descriptions = Column(String) # توضیحات
     # --------------------------------------------------------------------
     buyer_user = relationship( # کاربر خریدار
@@ -229,22 +222,23 @@ class ConfigurationInvoiceModel(BaseModel):
 
 
 class DiscountModel(BaseModel):
-    """
-    مدل تخفیف ها
-    این مدل برای تعریف تخفیف های پیشرفته برای کاربران فروشنده است
-    """
     __tablename__ = 'discount'
-    seller_user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر فروشنده
+    seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
     code = Column(String(16)) # کد تخفیف
-    percent = Column(String(16)) # درصد تخفیف
-    volume = Column(String(16)) # حجم
-    expired_dt = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ انقضائ
+    percent = Column(SmallInteger, nullable=False) # درصد تخفیف
+    volume = Column(BigInteger) # حجم
+    expired_dt = Column(DateTime(timezone=True), nullable=False) # تاریخ انقضائ
     usage_ceiling = Column(Integer) # محدودیت استفاده
-    maximum_discount_amount = Column(String(16)) # حداکثر مبلغ
-    minimum_purchase_amount = Column(String(16)) # حداقل مبلغ خرید
-    number_uses_per_user = Column(String(16)) # محدودیت استفاده برای هر کاربر
+    maximum_discount_amount = Column(BigInteger, default=0) # حداکثر مبلغ
+    minimum_purchase_amount = Column(BigInteger, default=0) # حداقل مبلغ خرید
+    number_uses_per_user = Column(Integer) # محدودیت استفاده برای هر کاربر
     refund = Column(Boolean, default=False) # بازگشت وجه
     synchronicity = Column(Boolean, default=False) # همزمانی
+    __table_args__ = (
+        CheckConstraint('percent >= 0 AND percent <= 100', name='ck_discount_percent_range'),
+        CheckConstraint('usage_ceiling >= 0', name='ck_discount_usage_ceiling'),
+        CheckConstraint('maximum_discount_amount <= minimum_purchase_amount', name='ck_discount_max_le_min'),
+    )
     # -------------------------------------------------------------------------
     seller_user = relationship( # کاربر فروشنده
         "UserCoreModel",
@@ -260,18 +254,11 @@ class DiscountModel(BaseModel):
 
 
 class UserDiscountType_choices(enum.Enum):
-    """
-    نوع کاربر برای تخفیف
-    """
     USED_BY_USERS = "used_by_users" # کاربران استفاده کرده
     AUTHORIZED_USERS_FOR_USE = "authorized_users_for_use" # کاربران مجاز به استفاده
 
+
 class UsersDiscountModel(BaseModel):
-    """
-    مدل کاربران تخفیف ها
-    این مدل بر اساس نوع انتخاب شده تعریف میکند که چه کاربرانی چند بار شامل تخفیف هستند و
-    چه کاربرانی چند بار تا الان از آن استفاده کرده اند
-    """
     __tablename__ = 'user_discount'
     user_id = Column(Integer, ForeignKey('user_core.id')) # شناسه کاربر
     discount_id = Column(Integer, ForeignKey('discount.id')) # شناسه تخفیف
@@ -291,3 +278,27 @@ class UsersDiscountModel(BaseModel):
         cascade="all, delete-orphan"
     )
 
+
+class ConfigurationsModel(BaseModel):
+    __tablename__ = 'configurations'
+    buyer_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر خریدار
+    seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
+    total_volume_gb = Column(BigInteger) # حجم کل خریداری شده
+    volume_ceiling_gb = Column(BigInteger) # سقف حجم قابل مصرف
+    consumed_volume_gb = Column(BigInteger) # حجم مصرف شده
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) # تاریخ ایجاد
+    __table_args__ = (
+        CheckConstraint('consumed_volume_gb <= volume_ceiling_gb', name='ck_conf_consumed_le_ceiling'),
+        CheckConstraint('volume_ceiling_gb <= total_volume_gb', name='ck_conf_ceiling_le_total'),
+    )
+    # --------------------------------------------------------------------
+    buyer_user = relationship( # کاربر خریدار
+        "UserCoreModel",
+        foreign_keys=[buyer_user_id],
+        back_populates="buyer_configurations"
+    )
+    seller_user = relationship( # کاربر فروشنده
+        "UserCoreModel",
+        foreign_keys=[seller_user_id],
+        back_populates="seller_configurations"
+    )
