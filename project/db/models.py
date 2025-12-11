@@ -1,7 +1,8 @@
+import enum
+
 from sqlalchemy import Column, Integer, BigInteger, SmallInteger, String, Boolean, DateTime, Enum, ForeignKey, text, CheckConstraint
 from sqlalchemy.orm import relationship, DeclarativeBase
 from sqlalchemy.sql import func
-import enum
 
 
 
@@ -11,12 +12,13 @@ class BaseModel(Base):
     __abstract__ = True
     id = Column(Integer, primary_key=True, autoincrement=True)
 
+# ==========================================================================================
 
 class UserCoreModel(BaseModel):
     __tablename__ = 'user_core'
     upstream_id = Column(Integer, ForeignKey("user_core.id")) # بالادستی
-    first_name = Column(String(32)) # نام
-    last_name = Column(String(32)) # نام خانوادگی
+    first_name = Column(String(32), nullable=True) # نام
+    last_name = Column(String(32), nullable=True) # نام خانوادگی
     created_at = Column(DateTime(timezone=True), server_default=func.now()) # زمان ثبت نام
     tel_user_id = Column(String(128), nullable=True) # شناسه کاربری تلگرام
     tel_chat_id = Column(String(128)) # شناسه چت تلگرام
@@ -104,6 +106,7 @@ class UserCoreModel(BaseModel):
         lazy="dynamic"
     )
 
+# ==========================================================================================
 
 class ConfigurationPanelModel(BaseModel):
     __tablename__ = 'configuration_panel_core'
@@ -126,6 +129,7 @@ class ConfigurationPanelModel(BaseModel):
     # -------------------------------------------------------------
     user = relationship("UserCoreModel", back_populates="configuration_panel")
 
+# ==========================================================================================
 
 class RepresentativesCoreModel(BaseModel):
     __tablename__ = 'representatives_core'
@@ -161,6 +165,7 @@ class RepresentativesCoreModel(BaseModel):
         CheckConstraint('base_purchase_price >= 0', name='ck_rep_purchase_price_non_negative'),
     )
 
+# ==========================================================================================
 
 class WalletInvoiceStatusChoices(enum.Enum):
     PRE_FACTURE = "pre_factore" # پیش فاکتور
@@ -169,7 +174,6 @@ class WalletInvoiceStatusChoices(enum.Enum):
     REJECTED = "rejected" # رد شده
     PAY_WALLET = "pay_wallet" # پرداخت شده به کیف پول
     CONFIGURATION_DIRECTE = "configuration_directe" # کانفیگ مستقیم
-
 
 class WalletRechargeInvoiceModel(BaseModel):
     __tablename__ = 'wallet_recharge_invoices'
@@ -197,6 +201,7 @@ class WalletRechargeInvoiceModel(BaseModel):
         back_populates="seller_wallet_invoice"
     )
 
+# ==========================================================================================
 
 class ConfigurationInvoiceModel(BaseModel):
     __tablename__ = 'configuration_invoices'
@@ -220,13 +225,13 @@ class ConfigurationInvoiceModel(BaseModel):
         back_populates="seller_configuration_invoice"
     )
 
+# ==========================================================================================
 
 class DiscountModel(BaseModel):
     __tablename__ = 'discount'
     seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
     code = Column(String(16)) # کد تخفیف
     percent = Column(SmallInteger, nullable=False) # درصد تخفیف
-    volume = Column(BigInteger) # حجم
     expired_dt = Column(DateTime(timezone=True), nullable=False) # تاریخ انقضائ
     usage_ceiling = Column(Integer) # محدودیت استفاده
     maximum_discount_amount = Column(BigInteger, default=0) # حداکثر مبلغ
@@ -252,11 +257,11 @@ class DiscountModel(BaseModel):
         cascade="all, delete-orphan"
     )
 
+# ==========================================================================================
 
 class UserDiscountType_choices(enum.Enum):
     USED_BY_USERS = "used_by_users" # کاربران استفاده کرده
     AUTHORIZED_USERS_FOR_USE = "authorized_users_for_use" # کاربران مجاز به استفاده
-
 
 class UsersDiscountModel(BaseModel):
     __tablename__ = 'user_discount'
@@ -278,11 +283,13 @@ class UsersDiscountModel(BaseModel):
         cascade="all, delete-orphan"
     )
 
+# ==========================================================================================
 
 class ConfigurationsModel(BaseModel):
     __tablename__ = 'configurations'
     buyer_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر خریدار
     seller_user_id = Column(Integer, ForeignKey('user_core.id'), nullable=False) # شناسه کاربر فروشنده
+    name = Column(String(128)) #نام
     total_volume_gb = Column(BigInteger) # حجم کل خریداری شده
     volume_ceiling_gb = Column(BigInteger) # سقف حجم قابل مصرف
     consumed_volume_gb = Column(BigInteger) # حجم مصرف شده
@@ -302,3 +309,5 @@ class ConfigurationsModel(BaseModel):
         foreign_keys=[seller_user_id],
         back_populates="seller_configurations"
     )
+
+
