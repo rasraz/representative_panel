@@ -1,7 +1,5 @@
 from typing import List
 
-from fastapi import status
-from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 
 from project.db.models import UserCoreModel
@@ -23,7 +21,7 @@ class UserCoreRepository(BaseRepository[UserCoreModel]):
         )
         return result.scalars().all()
 
-    async def get_downstream_user_by_unique_id(self, unique_id: str) -> UserCoreModel:
+    async def get_user_by_unique_id(self, unique_id: str) -> UserCoreModel:
         user_obj = await self.user_repo.session.query(UserCoreModel).filter(UserCoreModel.unique_id==unique_id).first()
         return user_obj
 

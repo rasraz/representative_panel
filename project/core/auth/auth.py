@@ -1,9 +1,11 @@
-from datetime import datetime, timedelta, timezone 
-from typing import Optional
+import hashlib
 from jose import jwt
+from typing import Optional
+from datetime import datetime, timedelta, timezone 
 from passlib.context import CryptContext
 from project.core.config import settings
  
+
 
 SECRET_KEY = settings.SECRET_KEY 
 ALGORITHM = "HS256"
@@ -14,14 +16,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(password: str):
     return pwd_context.hash(password)
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def decode_access_token(token: str):
     try:
@@ -35,7 +40,8 @@ def decode_access_token(token: str):
     except Exception as e:
         print("Error:::", e)
         return None, None
+    
 
-def generate_hash_password_by_phone_number(phone_number: str):
-    raw = f"password:{phone_number}/84921jflp=263"
-    return pwd_context.hash(raw)
+def hash_unique_id(user_id, upstream_id):
+    combined = f"{user_id}:{upstream_id}"
+    return hashlib.sha256(combined.encode()).hexdigest()
