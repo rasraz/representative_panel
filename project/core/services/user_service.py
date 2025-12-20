@@ -83,15 +83,25 @@ class AdminCoreService(RepresentativesCoreService):
         downstream_users = await self.user_repo.get_multi(filters={"upstream_id": repres_user_obj.id}, skip=skip, limit=limit)
         return downstream_users
 
-    async def deactive_downstream_user(self, upstream_user_obj: UserCoreModel, user_tel_chat_id: str) -> UserCoreModel:
-        user_obj = await self.get_downstream_user(upstream_user_obj, user_tel_chat_id)
+    async def deactive_downstream_user(self, upstream_user_obj: UserCoreModel, unique_id: str) -> UserCoreModel:
+        user_obj = await self.user_repo.get_user_by_unique_id(unique_id)
+        if not user_obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found or access denied"
+            )
         user_obj.is_active = False
         await self.user_repo.session.commit()
         await self.user_repo.session.refresh(user_obj)
         return user_obj
 
-    async def delete_downstream_user(self, upstream_user_obj: UserCoreModel, user_tel_chat_id: str) -> bool:
-        user_obj : UserCoreModel = await self.get_downstream_user(upstream_user_obj, user_tel_chat_id)
+    async def delete_downstream_user(self, upstream_user_obj: UserCoreModel, unique_id: str) -> bool:
+        user_obj = await self.user_repo.get_user_by_unique_id(unique_id)
+        if not user_obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found or access denied"
+            )
         await self.user_repo.session.delete(user_obj)
         await self.user_repo.session.commit()
         return True
