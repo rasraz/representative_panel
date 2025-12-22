@@ -46,19 +46,19 @@ def get_direct_config(db: Session, current_user: UserCoreModel, wallet_invoice: 
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create configuration invoice.") from e
 
 # ---------------------------------------
-def adding_charge_to_wallet(db: Session, current_user: UserCoreModel, wallet_invoice: WalletRechargeInvoiceModel) -> WalletRechargeInvoiceModel:
-    try:
-        user_obj = wallet_invoice.buyer_user
-        db_user_finance = db.query(UserFinanceModel).filter(UserFinanceModel.user_core==user_obj).first()
-        db_user_finance.wallet_balance = wallet_invoice.charge_amount
-        wallet_invoice.status = WalletInvoiceStatusChoices.PAY_WALLET.value
-        db.add(wallet_invoice)
-        db.commit()
-        db.refresh(wallet_invoice)
-        return wallet_invoice
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to adding charge to wallet.") from e
+# def adding_charge_to_wallet(db: Session, current_user: UserCoreModel, wallet_invoice: WalletRechargeInvoiceModel) -> WalletRechargeInvoiceModel:
+#     try:
+#         user_obj = wallet_invoice.buyer_user
+#         db_user_finance = db.query(UserFinanceModel).filter(UserFinanceModel.user_core==user_obj).first()
+#         db_user_finance.wallet_balance = wallet_invoice.charge_amount
+#         wallet_invoice.status = WalletInvoiceStatusChoices.PAY_WALLET.value
+#         db.add(wallet_invoice)
+#         db.commit()
+#         db.refresh(wallet_invoice)
+#         return wallet_invoice
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to adding charge to wallet.") from e
 
 # ---------------------------------------
 def accept_wallet_invoice(db: Session, wallet_invoice_id: int, current_user: UserCoreModel, accepted: bool=True):
@@ -85,28 +85,28 @@ def accept_wallet_invoice(db: Session, wallet_invoice_id: int, current_user: Use
     return wallet_invoice_obj
 
 # --------------------------------------------------
-def create_wallet_invoice(
-    db: Session, 
-    data: WalletInvoiceCreateSchemas, 
-    current_user: UserCoreModel
-    ) -> WalletRechargeInvoiceModel:
-    """برای ثبت رسید شارژ کیف پول کاربر"""
-    try:
-        with db.begin():
-            db_wallet_invoice = WalletRechargeInvoiceModel(
-                buyer_user=current_user,
-                seller_user=current_user.upstream,
-                charge_amount=data.charge_amount,
-                get_config=data.get_config,
-                descriptions=data.descriptions,
-            )
-            db.add(db_wallet_invoice)
-            db.commit()
-        db.refresh(db_wallet_invoice)
-        return db_wallet_invoice
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create wallet invoice.") from e
+# def create_wallet_invoice(
+#     db: Session, 
+#     data: WalletInvoiceCreateSchemas, 
+#     current_user: UserCoreModel
+#     ) -> WalletRechargeInvoiceModel:
+#     """برای ثبت رسید شارژ کیف پول کاربر"""
+#     try:
+#         with db.begin():
+#             db_wallet_invoice = WalletRechargeInvoiceModel(
+#                 buyer_user=current_user,
+#                 seller_user=current_user.upstream,
+#                 charge_amount=data.charge_amount,
+#                 get_config=data.get_config,
+#                 descriptions=data.descriptions,
+#             )
+#             db.add(db_wallet_invoice)
+#             db.commit()
+#         db.refresh(db_wallet_invoice)
+#         return db_wallet_invoice
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create wallet invoice.") from e
 
 
 

@@ -38,15 +38,6 @@ class UserCoreRepository(BaseRepository[UserCoreModel]):
         await self.session.commit()
         await self.session.refresh(user_obj)
         return user_obj
-
-    async def wallet_balance_sufficient(self, unique_id: str, amount: int):
-        user_obj : UserCoreModel = await self.get_by_unique_id(self, unique_id=unique_id)
-        if not user_obj:
-            return None
-        wallet_balance = user_obj.wallet_balance
-        if wallet_balance < amount:
-            return False
-        return True
     
 
 
