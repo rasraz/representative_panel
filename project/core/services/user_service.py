@@ -34,14 +34,6 @@ class UserCoreService:
         await self.user_repo.session.refresh(upstream_user_obj)
         return upstream_user_obj
 
-    async def wallet_balance_sufficient(self, unique_id: str, amount: int):
-        user_obj: UserCoreModel = await self.user_repo.get_by_unique_id(self, unique_id=unique_id)
-        if not user_obj:
-            return None
-        wallet_balance = user_obj.wallet_balance
-        if wallet_balance < amount:
-            return False
-        return True
 
 class RepresentativesCoreService(UserCoreService):
     def __init__(self, user_repo: UserCoreRepository):
